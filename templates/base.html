@@ -5,9 +5,11 @@
 {% block styles %}
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
+
 
 {% block head %}
-{{ super() }}
+<!-- {{ super() }} -->
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 {% endblock %}
@@ -39,13 +41,9 @@
 <div class="container">
     {% block page_content %}{% endblock %}
 </div>
-<<<<<<< HEAD
-{% endblock %}
-=======
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-{{ moment.include_moment() }}
+    {{ super() }}
+    {{ moment.include_moment() }}
 {% endblock %}
->>>>>>> 3e
