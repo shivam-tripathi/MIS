@@ -2,6 +2,11 @@
 
 {% block title %}Flasky{% endblock %}
 
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
+
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
@@ -16,7 +21,9 @@
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li><a href="/">Home</a></li>
+                <li><a href="/" class="fa fa-home">Home</a></li>
+                <li><a href="/" class="fa fa-sign-in">Signin</a></li>
+                <li><a href="/" class="fa fa-user-plus">Signup</a></li>
             </ul>
         </div>
     </div>
@@ -28,4 +35,3 @@
     {% block page_content %}{% endblock %}
 </div>
 {% endblock %}
->>>>>>> 3c
