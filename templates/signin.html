@@ -15,7 +15,7 @@
                     <h1>Account login</h1>
                     {{ form.csrf_token }}
                     {{ form.hidden_tag() }}
-                    {{ form.email(class="input pass", autofocus="autofocus", placeholder="Email") }}
+                    {{ form.email(class="input pass", autofocus="autofocus", placeholder="Email", value=email) }}
                     {{ form.pwd(class="input pass", autofocus="autofocus", placeholder="Password") }}
                     {{ form.submit(class="inputButton", value="Sign me in!")}}
                     <div class="text-center"> <a href='#' id="">Create a new account</a> &nbsp&nbsp <a href="#" id="">Forgot Password</a> </div>

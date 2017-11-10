@@ -17,11 +17,13 @@
                     <!-- {{ wtf.quick_form(form) }} -->
                     {{ form.csrf_token }}
                     {{ form.hidden_tag() }}
-                    {{ form.name(class="input pass", autofocus="autofocus", placeholder="Name") }}
+
+                    {{ form.name(class="input pass", autofocus="autofocus", placeholder="Username", value=name) }}
                     {{ form.pwd(class="input pass", autofocus="autofocus", placeholder="Password") }}
                     {{ form.cnfpwd(class="input pass", autofocus="autofocus", placeholder="Confirm Password") }}
-                    {{ form.email(class="input pass", autofocus="autofocus", placeholder="Email") }}
+                    {{ form.email(class="input pass", autofocus="autofocus", placeholder="Email", value=email) }}
                     {{ form.submit(class="btn inputButton") }}
+
                     <div class="text-center">  Already have an account? <a href = {{ url_for("signin") }} id="login_id">Login</a> </div>
                 </form>
             </div>
