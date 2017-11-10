@@ -56,7 +56,7 @@ def signup():
         if form.validate_on_submit():
             return redirect(url_for('index'))
         else:
-            return '<h1> Invalid submission </h1> %s %s %s %s' % (form.name.data, form.pwd.data, form.cnfpwd.data, form.errors)
+            return '<h1> Invalid submission </h1> %s' % (form.errors)
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
@@ -69,7 +69,7 @@ def signin():
         if form.validate_on_submit():
             return redirect(url_for('index'))
         else:
-            return '<h1> Invalid submission %s %s %s </h1>' % (form.name.data, form.email.data, form.errors)
+            return '<h1> Invalid submission %s </h1>' % (form.errors)
 
 class Check:
     def __init__(self, one, two, three):
