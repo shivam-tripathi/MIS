@@ -14,7 +14,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '3ad05b627be2e0258a6a67ebccf54db633847c76'
 app.config['SQLALCHEMY_DATABASE_URI'] =\
-    'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+    ('mysql://root:root@localhost/test')
+
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -87,7 +88,7 @@ def signup():
     fields = {'name':'Name', 'pwd':'Password', 'cnfpwd':'Confirm Password', 'email':'Email'}
     errors = {'name':'Name can contain only alphanumeric values and underscores allowed 3-25 characters long',
                 'pwd': "Password should lie between 5-25 characters",
-                'cnf': "Passwords don't match",
+                'cnfpwd': "Passwords don't match",
                 'email': "Invalid email"}
 
     if request.method == 'GET':
