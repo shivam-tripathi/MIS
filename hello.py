@@ -38,9 +38,10 @@ class Role(db.Model):
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64))
-    email = db.Column(db.String(64), unique=True, index=True)
-    password = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64))
+    username = db.Column(db.String(64), unique=True, index=True)
+    email = db.Column(db.String(128), unique=True, index=True)
+    password = db.Column(db.String(128), unique=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __repr__(self):
@@ -52,7 +53,8 @@ class NameForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class SignupForm(FlaskForm):
-    name = StringField('Username', validators=[Required(), Length(min=3, max=25), Regexp("\w+\s\w+")])
+    name = StringField('Name', validators=[Required(), Length(min=3, max=25), Regexp('^[\w+\s\w+]+$')])
+    username = StringField('Username', validators=[Required(), Length(min=3, max=10), Regexp('^[\S]+$')])
     pwd = PasswordField('Password', validators=[Required(), Length(min=5, max=25)])
     cnfpwd = PasswordField('Confirm Password', validators=[Required(), Length(min=5, max=25)])
     email = StringField('Email', validators=[Required(), Email()])
@@ -87,26 +89,35 @@ def index():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
-    fields = {'name':'Name', 'pwd':'Password', 'cnfpwd':'Confirm Password', 'email':'Email'}
+    fields = {'name':'Name', 'username':'Username', 'pwd':'Password', 'cnfpwd':'Confirm Password', 'email':'Email'}
     errors = {'name':'Name can contain only alphanumeric values and underscores allowed 3-25 characters long',
-                'pwd': "Password should lie between 5-25 characters",
-                'cnfpwd': "Passwords don't match",
-                'email': "Invalid email"}
+                'username': 'Username has to be unique with no spaces',
+                'pwd': 'Password should lie between 5-25 characters',
+                'cnfpwd': 'Passwords don\'t match',
+                'email': 'Invalid email'}
 
     if request.method == 'GET':
-        name = session['values']['name'] if session['values'].get('name') else ""
-        email = session['values']['email'] if session['values'].get('email') else ""
-        session['values'] = {}
-        return render_template('signup.html', form=form, name=name, email=email)
+        name = username = email = ''
+        if session.get('values'):
+            name = session['values']['name'] if session['values'].get('name') else ''
+            username = session['values']['username'] if session['values'].get('username') else ''
+            email = session['values']['email'] if session['values'].get('email') else ''
+            session['values'] = {}
+        return render_template('signup.html', form=form, name=name, username=username, email=email)
 
     if form.validate_on_submit():
+        # Role.query.filter_by('username')
+        session['name'] = form.name.data
         return redirect(url_for('index'))
     else:
+        flag = True
+        session['values'] = {'name':form.name.data, 'username':form.username.data, 'email':form.email.data}
+        error_msg = ""
         for field in fields:
             if field in form.errors:
-                flash(errors[field])
-                break
-        session['values'] = {'name':form.name.data, 'email':form.email.data}
+                if flag:
+                    flash(errors[field])
+                session['values'][field] = ""
         return redirect(url_for('signup'))
 
 
