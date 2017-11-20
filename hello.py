@@ -1,13 +1,15 @@
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import os
-from flask_script import Manager
+from flask_script import Manager, Shell
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf import FlaskForm
 from wtforms import *
 from wtforms.validators import *
 from flask_sqlalchemy import SQLAlchemy
+from passlib.hash import sha256_crypt
+from flask_migrate import Migrate, MigrateCommand
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -19,10 +21,17 @@ app.config['SQLALCHEMY_DATABASE_URI'] =\
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+def make_shell_context():
+    return dict(app=app, db=db, User=User, Role=Role)
+
 manager = Manager(app)
+manager.add_command('shell', Shell(make_context=make_shell_context))
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
+
 
 
 class Role(db.Model):
@@ -99,25 +108,53 @@ def signup():
     if request.method == 'GET':
         name = username = email = ''
         if session.get('values'):
-            name = session['values']['name'] if session['values'].get('name') else ''
-            username = session['values']['username'] if session['values'].get('username') else ''
-            email = session['values']['email'] if session['values'].get('email') else ''
+            name = session['values'].get('name', '')
+            username = session['values'].get('username', '')
+            email = session['values'].get('email', '')
             session['values'] = {}
+
         return render_template('signup.html', form=form, name=name, username=username, email=email)
 
     if form.validate_on_submit():
-        # Role.query.filter_by('username')
+        form.username.data = form.username.data.lower()
+        form.email.data = form.email.data.lower()
+        session['values'] = {'name':form.name.data, 'username':form.username.data, 'email':form.email.data}
+
+        find_username = User.query.filter_by(username=form.username.data).first()
+        find_email = User.query.filter_by(email=form.email.data).first()
+        if find_username is not None or find_email is not None:
+            if find_username is not None:
+                flash('Username already in use. Try a different one!')
+                session['values']['username'] = ''
+
+            if find_email is not None:
+                flash('Email already in use. Try a different one!')
+                session['values']['email'] = ''
+
+            return redirect(url_for('signup'))
+
+        session['values'] = {}
+        role =  Role.query.filter_by(name='User').first()
+        new_user = User(name=form.name.data,
+                    username=form.username.data,
+                    email=form.email.data,
+                    password=sha256_crypt.hash(form.pwd.data),
+                    role=role)
+
+        db.session.add(new_user)
+        db.session.commit()
+
         session['name'] = form.name.data
         return redirect(url_for('index'))
     else:
         flag = True
         session['values'] = {'name':form.name.data, 'username':form.username.data, 'email':form.email.data}
-        error_msg = ""
+        error_msg = ''
         for field in fields:
             if field in form.errors:
                 if flag:
                     flash(errors[field])
-                session['values'][field] = ""
+                session['values'][field] = ''
         return redirect(url_for('signup'))
 
 
@@ -125,22 +162,33 @@ def signup():
 def signin():
     fields = {'email':'Email', 'pwd':'Password'}
     form = SigninForm()
+    email = session.get('email', '')
 
     if request.method == 'GET':
-        email = session['email'] if session.get('email') else ""
-        session['email'] = None
-        return render_template('signin.html', form = form, email=email)
+        email = email if email else ''
+        return render_template('signin.html', form=form, email=email)
     elif request.method == 'POST':
         if form.validate_on_submit():
-            return redirect(url_for('index'))
+            user = User.query.filter_by(email=form.email.data).first()
+            if user is None:
+                flash('User not found!')
+                return redirect(url_for('signin'))
+
+            if sha256_crypt.verify(form.pwd.data, user.password):
+                session['name'] = user.name
+                return redirect(url_for('index'))
+            else:
+                flash('Incorrect password!')
+                session['email'] = form.email.data
+                return redirect(url_for('signin'))
         else:
-            for field in fields:
-                if field in form.errors:
-                    flash("Invalid %s " % fields[field])
-                    break
+            if 'email' in form.errors:
+                flash('Invalid email')
+                form.email.data = ''
+            if 'pwd' in form.errors:
+                flash('Invalid password')
             session['email'] = form.email.data
             return redirect(url_for('signin'))
-
 
 class Check:
     def __init__(self, one, two, three):
@@ -153,7 +201,7 @@ class Check:
 
 @app.route('/check')
 def check():
-    obj = Check(1, "Two", [i for i in range(10)])
+    obj = Check(1, 'Two', [i for i in range(10)])
     print (obj.three, obj.two)
     return render_template('check.html', obj=obj, lis=obj.three, str=obj.two, user=obj.two)
 
