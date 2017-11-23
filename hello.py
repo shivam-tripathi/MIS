@@ -10,6 +10,8 @@ from wtforms.validators import *
 from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import sha256_crypt
 from flask_migrate import Migrate, MigrateCommand
+from flask_mail import Mail, Message
+from threading import Thread
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -21,6 +23,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] =\
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_SENDER'] = 'Shivam Tripathi <onlinemusic97@gmailcom>'
+app.config['MAIL_SUBJECT_PREFIX'] = '[onlinemusic97] wrote: '
+
 def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role)
 
@@ -31,7 +41,7 @@ moment = Moment(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
-
+mail = Mail(app)
 
 
 class Role(db.Model):
@@ -61,6 +71,7 @@ class NameForm(FlaskForm):
     name = StringField('What is your name?', validators=[Required()])
     submit = SubmitField('Submit')
 
+
 class SignupForm(FlaskForm):
     name = StringField('Name', validators=[Required(), Length(min=3, max=25), Regexp('^[\w+\s\w+]+$')])
     username = StringField('Username', validators=[Required(), Length(min=3, max=10), Regexp('^[\S]+$')])
@@ -69,9 +80,19 @@ class SignupForm(FlaskForm):
     email = StringField('Email', validators=[Required(), Email()])
     submit = SubmitField('Submit')
 
+
 class SigninForm(FlaskForm):
     email = StringField('Email', validators=[Required(), Email()])
     pwd = PasswordField('Password', validators=[Required(), Length(min=5, max=25)])
+    submit = SubmitField('Submit')
+
+
+class ResetForm(FlaskForm):
+    email = StringField('Email', validators=[Required(), Email()])
+    submit = SubmitField('Submit')
+
+class TokenForm(FlaskForm):
+    token = StringField('Token', validators=[Required()])
     submit = SubmitField('Submit')
 
 @app.errorhandler(404)
@@ -85,6 +106,7 @@ def internal_server_error(e):
 
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
 def index():
     form = NameForm()
     if form.validate_on_submit():
@@ -94,6 +116,7 @@ def index():
         session['name'] = form.name.data
         return redirect(url_for('index'))
     return render_template('index.html', form=form, name=session.get('name'))
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -190,20 +213,60 @@ def signin():
             session['email'] = form.email.data
             return redirect(url_for('signin'))
 
-class Check:
-    def __init__(self, one, two, three):
-        self.one = one
-        self.two = two
-        self.three = three
 
-    def get_alpha(self):
-        return self.one
+@app.route('/reset', methods=['GET', 'POST'])
+def reset():
+    form = ResetForm()
+    if request.method == 'GET':
+        return render_template('reset.html', form=form)
+    elif request.method == 'POST':
+        if form.validate_on_submit():
+            user = User.query.filter_by(email=form.email.data).first()
+            if user is None:
+                flash('User not found!')
+                return redirect(url_for('reset'))
 
-@app.route('/check')
-def check():
-    obj = Check(1, 'Two', [i for i in range(10)])
-    print (obj.three, obj.two)
-    return render_template('check.html', obj=obj, lis=obj.three, str=obj.two, user=obj.two)
+            if app.config['MAIL_USERNAME']:
+                arg = {'to': user.email, 'subject': 'Password Reset', 'template': 'mail_reset',
+                    'name': user.name, 'token':'21089512', 'msg': 'reset passwork token', 'time': '5'}
+                print (app)
+                print (arg)
+                thr = Thread(target=send_email, args=[app, arg])
+                thr.start()
+
+            session['name'] = user.name
+            flash('A reset token has been sent to your emailid.')
+            return redirect(url_for('token', msg='Password reset'))
+        else:
+            flash('Invalid email')
+            return redirect(url_for('reset'))
+
+
+@app.route('/token/<msg>', methods=['GET', 'POST'])
+def token(msg):
+    form = TokenForm()
+    if request.method == 'GET':
+        return render_template('token.html', form=form, msg=msg)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            redirect(url_for('index'))
+        else:
+            flash('Incorrect token')
+            redirect(url_for('reset'))
+
+
+def send_email(app, arg):
+    msg = Message(app.config['MAIL_SUBJECT_PREFIX'] + arg['subject'],
+                sender=app.config['MAIL_SENDER'], recipients=[arg['to']])
+
+    with app.app_context():
+        msg.body = render_template(arg['template'] + '.txt', name=arg['name'], token=arg['token'],
+            msg=arg['msg'], time=arg['time'])
+        msg.html = render_template(arg['template'] + '.html', name=arg['name'],token=arg['token'],
+            msg=arg['msg'], time=arg['time'])
+        print ("Sending mail!!!!!")
+        # mail.send(msg)
+
 
 if __name__ == '__main__':
     db.create_all()
