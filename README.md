@@ -1,7 +1,6 @@
-Flasky
+MIS project
 ======
 
-This repository contains the source code examples for my O'Reilly book [Flask Web Development](http://www.flaskbook.com).
+This repository contains the source code written while reading the book Flask Web Development by Miguel Grinberg (an excellent book).
 
-The commits and tags in this repository were carefully created to match the sequence in which concepts are presented in the book. Please read the section titled "How to Work with the Example Code" in the book's preface for instructions.
-
+Side by side, I also tweaked it to save it as a project for my Management Information Systems course.
