@@ -12,12 +12,12 @@
         <div class="col-md-6 col-md-offset-3">
             <div id="logbox">
                 <form method="post">
-                    <h1> {{ msg }} </h1>
+                    <h1>Password Reset</h1>
                     {{ form.csrf_token }}
                     {{ form.hidden_tag() }}
-                    {{ form.token(class="input pass", autofocus="autofocus", placeholder="Token", value=email) }}
+                    {{ form.email(class="input pass", autofocus="autofocus", placeholder="Email", value=email) }}
                     {{ form.submit(class="inputButton", value="Continue")}}
-                    <div class="text-center"> <a href= {{ url_for('signup') }} id="">Create a new account</a> &nbsp&nbsp <a href = {{ url_for('signin')}} id="">Signin</a> </div>
+                    <div class="text-center"> <a href= {{ url_for('.signup') }} id="">Create a new account</a> &nbsp&nbsp <a href = {{ url_for('.signin')}} id="">Signin</a> </div>
                 </form>
             </div>
         </div>
