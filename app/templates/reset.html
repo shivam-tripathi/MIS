@@ -17,7 +17,7 @@
                     {{ form.hidden_tag() }}
                     {{ form.email(class="input pass", autofocus="autofocus", placeholder="Email", value=email) }}
                     {{ form.submit(class="inputButton", value="Continue")}}
-                    <div class="text-center"> <a href= {{ url_for('.signup') }} id="">Create a new account</a> &nbsp&nbsp <a href = {{ url_for('.signin')}} id="">Signin</a> </div>
+                    <div class="text-center"> <a href= {{ url_for('auth.signup') }} id="">Create a new account</a> &nbsp&nbsp <a href = {{ url_for('auth.signin')}} id="">Signin</a> </div>
                 </form>
             </div>
         </div>

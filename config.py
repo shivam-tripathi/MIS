@@ -4,9 +4,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or '3ad05b627be2e0258a6a67ebccf54db633847c76'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
-    FLASKY_MAIL_SUBJECT_PREFIX = '[Shivam Tripathi]'
-    FLASKY_MAIL_SENDER = 'Blog-admin <onlinemusic97@gmail.com>'
-    FLASKY_ADMIN = os.environ.get('EMAIL_USERNAME')
+    MAIL_SUBJECT_PREFIX = '[Shivam Tripathi]'
+    MAIL_SENDER = 'Blog-admin <onlinemusic97@gmail.com>'
+    ADMIN = os.environ.get('EMAIL_USERNAME')
 
     @staticmethod
     def init_app(app):
@@ -18,8 +18,8 @@ class DevelopmentConfig(Config):
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_USERNAME = os.environ.get('EMAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
          ('mysql://root:root@localhost/test')
     SQLALCHEMY_TRACK_MODIFICATIONS = True

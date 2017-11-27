@@ -45,3 +45,5 @@ venv
 *.pyc
 *.sh
 *.config
+db_setup.py
+.vscode

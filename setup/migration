@@ -1,0 +1,3 @@
+python hello.py db init
+python hello.py db migrate -m "Migration message"
+python hello.py db upgrade
