@@ -1,7 +1,7 @@
 from flask import render_template, request, session, redirect, url_for, current_app as app, flash
 from flask_login import login_required, login_user, logout_user, current_user
 from .. import login_manager
-from ..models import User, Role
+from ..models import User, Role, db
 from .forms import SigninForm, SignupForm
 from . import auth
 
@@ -41,6 +41,7 @@ def signin():
                 flash('Invalid password')
             session['email'] = form.email.data
             return redirect(url_for('.signin'))
+
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -88,14 +89,15 @@ def signup():
         new_user = User(name=form.name.data,
                     username=form.username.data,
                     email=form.email.data,
-                    password=sha256_crypt.hash(form.pwd.data),
+                    password=form.pwd.data,
                     role=role)
 
         db.session.add(new_user)
         db.session.commit()
 
+        login_user(new_user, True)
         session['name'] = form.name.data
-        return redirect(url_for('.index'))
+        return redirect(url_for('main.index'))
     else:
         flag = True
         session['values'] = {'name':form.name.data, 'username':form.username.data, 'email':form.email.data}
