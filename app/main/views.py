@@ -101,7 +101,7 @@ def signin():
                 flash('User not found!')
                 return redirect(url_for('.signin'))
 
-            if sha256_crypt.verify(form.pwd.data, user.password):
+            if user.verify_password(form.pwd.data):
                 session['name'] = user.name
                 return redirect(url_for('.index'))
             else:
